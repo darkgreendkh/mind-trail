@@ -73,7 +73,7 @@ export function Inspector() {
           创建支线 (Tab)
         </button>
         <button
-          className="rounded-lg px-3 py-2 text-sm text-red-600 hover:bg-red-50"
+          className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
           onClick={() => deleteNode(node.id)}
         >
           删除节点 (Delete)

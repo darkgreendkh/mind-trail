@@ -21,7 +21,7 @@ export function useKeyboardShortcuts() {
       } else if (e.key === 'Tab') {
         e.preventDefault()
         state.createBranch()
-      } else if (e.key === 'Delete') {
+      } else if (e.key === 'Delete' || e.key === 'Backspace') {
         e.preventDefault()
         state.deleteNode(current.id)
       }

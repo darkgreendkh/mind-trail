@@ -23,19 +23,32 @@ export function autoLayout(nodes: TrailNode[], edges: TrailEdge[]): TrailNode[] 
   const hasParent = new Set(edges.map((e) => e.to))
   const roots = nodes.filter((n) => !hasParent.has(n.id))
 
-  let cursorY = ROOT_Y
+  // Next free Y per column. The column is the branch-depth from a root.
+  const freeY = new Map<number, number>()
+  const nextFreeY = (col: number) => freeY.get(col) ?? ROOT_Y
 
-  const place = (nodeId: string, col: number) => {
-    positions.set(nodeId, { x: ROOT_X + col * BRANCH_DX, y: cursorY })
-    cursorY += MAIN_DY
+  // Place a node's subtree and return the Y it was given. Branch children go one
+  // column to the right and the node is vertically centered on them; main
+  // children continue straight down in the same column. The per-column cursor
+  // stops separate sub-trees from overlapping.
+  const place = (nodeId: string, col: number): number => {
     const children = getChildren(edges, nodeId)
-    const mainFirst = [
-      ...children.filter((e) => e.type === 'main'),
-      ...children.filter((e) => e.type === 'branch'),
-    ]
-    for (const edge of mainFirst) {
-      place(edge.to, edge.type === 'branch' ? col + 1 : col)
-    }
+    const branchKids = children.filter((e) => e.type === 'branch')
+    const mainKids = children.filter((e) => e.type === 'main')
+
+    const branchYs = branchKids.map((e) => place(e.to, col + 1))
+    const centered =
+      branchYs.length > 0
+        ? (branchYs[0] + branchYs[branchYs.length - 1]) / 2
+        : nextFreeY(col)
+    const y = Math.max(centered, nextFreeY(col))
+
+    positions.set(nodeId, { x: ROOT_X + col * BRANCH_DX, y })
+    freeY.set(col, y + MAIN_DY)
+
+    for (const edge of mainKids) place(edge.to, col)
+
+    return y
   }
 
   for (const root of roots) place(root.id, 0)
