@@ -8,6 +8,7 @@ import {
   MarkerType,
   type Edge,
   type NodeMouseHandler,
+  type OnNodeDrag,
   type NodeChange,
 } from '@xyflow/react'
 import '@xyflow/react/dist/style.css'
@@ -16,6 +17,15 @@ import { TrailNodeView, type TrailFlowNode } from './TrailNodeView'
 import type { TrailNode } from '../../types'
 
 const nodeTypes = { trail: TrailNodeView }
+
+// React Flow swallows a node click when the pointer jitters during the press:
+// `nodeClickDistance` defaults to 0 (any movement > 0px suppresses the click)
+// while `nodeDragThreshold` defaults to 1 (a drag only starts past 1px). A ~1px
+// micro-move therefore fires *neither* onNodeClick nor onNodeDragStart, so the
+// node never becomes current and the click feels lost. Setting the click slop
+// equal to the drag threshold closes that gap: movement up to this many pixels
+// counts as a click (the node does not move), and only beyond it starts a drag.
+const NODE_CLICK_SLOP = 4
 
 function toRfNodes(nodes: TrailNode[], currentNodeId: string | undefined): TrailFlowNode[] {
   return nodes.map((n) => ({
@@ -106,6 +116,9 @@ export function Canvas() {
   }
 
   const onNodeClick: NodeMouseHandler<TrailFlowNode> = (_, node) => selectNode(node.id)
+  // Grabbing a node (a deliberate drag past the slop) also focuses it. Click and
+  // drag-start fire on mutually exclusive movement ranges, so selectNode runs once.
+  const onNodeDragStart: OnNodeDrag<TrailFlowNode> = (_, node) => selectNode(node.id)
 
   if (!project) return null
 
@@ -116,6 +129,9 @@ export function Canvas() {
       nodeTypes={nodeTypes}
       onNodesChange={handleNodesChange}
       onNodeClick={onNodeClick}
+      onNodeDragStart={onNodeDragStart}
+      nodeClickDistance={NODE_CLICK_SLOP}
+      nodeDragThreshold={NODE_CLICK_SLOP}
       deleteKeyCode={null}
       colorMode="light"
       fitView
