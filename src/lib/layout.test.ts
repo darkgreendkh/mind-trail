@@ -71,6 +71,22 @@ describe('autoLayout', () => {
     expect(pos.c.y).toBe(pos.a.y) // …and a single branch is level with its parent
   })
 
+  it('keeps a branch level with its mid-spine parent, not the root', () => {
+    // a(root) → b (main) → c (branch of b). Because the root sits above it, b is
+    // pushed down to the second row; its branch c must follow b down, not stay
+    // level with the root. This is the 图一 → 图二 fix.
+    const nodes = [node('a'), node('b'), node('c')]
+    const edges: TrailEdge[] = [
+      { id: 'e1', from: 'a', to: 'b', type: 'main' },
+      { id: 'e2', from: 'b', to: 'c', type: 'branch' },
+    ]
+    const out = autoLayout(nodes, edges)
+    const pos = Object.fromEntries(out.map((n) => [n.id, { x: n.x, y: n.y }]))
+    expect(pos.a).toEqual({ x: 100, y: 100 })
+    expect(pos.b).toEqual({ x: 100, y: 280 }) // main child, one row down
+    expect(pos.c).toEqual({ x: 360, y: 280 }) // branch level with b, not with a
+  })
+
   it('lays out a spine with a centered branch sub-tree', () => {
     const nodes = ['a', 'b', 'c', 'd', 'e', 'f'].map((id) => node(id))
     const edges: TrailEdge[] = [
