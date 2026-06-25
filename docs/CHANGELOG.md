@@ -19,9 +19,10 @@
 - 自动整理布局：全图重排为「主线向下、支线向右、父节点在分支上居中」。
 - 工具栏「回到当前节点」聚焦当前节点。
 - 画布缩放、平移、节点拖拽、背景网格，当前节点高亮。
-- 快捷键：Enter 继续主线、Tab 创建支线、Delete / Backspace 删除。
+- 撤销 / 重做：覆盖画布节点操作（删除、继续主线、创建支线、改状态、拖拽、自动布局、改标题/笔记），误删可一键恢复；会话级历史，连续文字编辑合并为一步。
+- 快捷键：Enter 继续主线、Tab 创建支线、Delete / Backspace 删除、Ctrl+Z 撤销、Ctrl+Shift+Z / Ctrl+Y 重做。
 - localStorage 同步持久化，刷新后完整恢复。
-- 文档：`README.md`、`docs/PRODUCT_SPEC.md`、`docs/ROADMAP.md`、`docs/CHANGELOG.md`、`docs/specs/` 实现计划。
+- 文档：`README.md`、`docs/PRODUCT_SPEC.md`、`docs/ROADMAP.md`、`docs/CHANGELOG.md`、`docs/architecture.md`、`docs/specs/` 实现计划。
 
 ### Fixed
 
@@ -36,5 +37,4 @@
 - 导出 / 导入。
 - AI 总结。
 - 复杂知识图谱、标签系统。
-- 撤销 / 重做。
 - 搜索节点。
