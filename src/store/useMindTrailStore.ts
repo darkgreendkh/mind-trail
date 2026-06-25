@@ -3,6 +3,7 @@ import type {
   MindTrailProject,
   MindTrailStorage,
   NodeStatus,
+  TrailEdge,
   TrailNode,
 } from '../types'
 import { createId } from '../lib/id'
@@ -19,9 +20,26 @@ import {
   mainChildPosition,
 } from '../lib/layout'
 
+// One undo step: the canvas state of a single project. We snapshot only the
+// fields the canvas/node actions touch (not the title), so undo never reverts a
+// project rename or disturbs other projects. History is session-only — it is not
+// part of the persisted storage shape, so a refresh starts with an empty stack.
+type Snapshot = {
+  projectId: string
+  nodes: TrailNode[]
+  edges: TrailEdge[]
+  currentNodeId: string
+}
+
+const HISTORY_LIMIT = 50
+
 type MindTrailState = {
   projects: MindTrailProject[]
   activeProjectId: string | null
+  // undo/redo history (session-only, not persisted)
+  past: Snapshot[]
+  future: Snapshot[]
+  historyTag: string | null
   // project lifecycle
   createProject: () => string
   openProject: (id: string) => void
@@ -38,6 +56,14 @@ type MindTrailState = {
   createBranch: () => string | null
   deleteNode: (nodeId: string) => void
   autoLayout: () => void
+  undo: () => void
+  redo: () => void
+}
+
+const clearedHistory: Pick<MindTrailState, 'past' | 'future' | 'historyTag'> = {
+  past: [],
+  future: [],
+  historyTag: null,
 }
 
 const initial = loadStorage()
@@ -65,27 +91,81 @@ export const useMindTrailStore = create<MindTrailState>((set, get) => {
     persist(get())
   }
 
+  // Record the active project's current canvas as one undo step. Call this
+  // *before* a mutating canvas action. `tag` coalesces a burst of same-kind
+  // edits (e.g. typing a title) into a single step: a repeated non-null tag is
+  // skipped, while `null` always pushes a discrete step. Doing anything new also
+  // drops the redo stack. Relies on the actions' immutable updates — the old
+  // arrays we capture here are never mutated in place.
+  const pushHistory = (tag: string | null) => {
+    const s = get()
+    const project = s.projects.find((p) => p.id === s.activeProjectId)
+    if (!project) return
+    if (tag !== null && tag === s.historyTag) return
+    const snap: Snapshot = {
+      projectId: project.id,
+      nodes: project.nodes,
+      edges: project.edges,
+      currentNodeId: project.currentNodeId,
+    }
+    set({ past: [...s.past, snap].slice(-HISTORY_LIMIT), future: [], historyTag: tag })
+  }
+
+  // Restore a snapshot onto its project, pushing the displaced state onto the
+  // opposite stack. Shared by undo (past→future) and redo (future→past).
+  const applySnapshot = (snap: Snapshot, toFuture: boolean) => {
+    set((state) => {
+      const project = state.projects.find((p) => p.id === snap.projectId)
+      if (!project) return {}
+      const displaced: Snapshot = {
+        projectId: project.id,
+        nodes: project.nodes,
+        edges: project.edges,
+        currentNodeId: project.currentNodeId,
+      }
+      const projects = state.projects.map((p) =>
+        p.id === snap.projectId
+          ? {
+              ...p,
+              nodes: snap.nodes,
+              edges: snap.edges,
+              currentNodeId: snap.currentNodeId,
+              updatedAt: Date.now(),
+            }
+          : p,
+      )
+      return toFuture
+        ? { projects, past: state.past.slice(0, -1), future: [displaced, ...state.future].slice(0, HISTORY_LIMIT), historyTag: null }
+        : { projects, past: [...state.past, displaced].slice(-HISTORY_LIMIT), future: state.future.slice(1), historyTag: null }
+    })
+    persist(get())
+  }
+
   return {
     projects: initial.projects,
     activeProjectId: initial.activeProjectId,
+    past: [],
+    future: [],
+    historyTag: null,
 
     createProject: () => {
       const project = createDefaultProject()
       set((state) => ({
         projects: [...state.projects, project],
         activeProjectId: project.id,
+        ...clearedHistory,
       }))
       persist(get())
       return project.id
     },
 
     openProject: (id) => {
-      set({ activeProjectId: id })
+      set({ activeProjectId: id, ...clearedHistory })
       persist(get())
     },
 
     closeProject: () => {
-      set({ activeProjectId: null })
+      set({ activeProjectId: null, ...clearedHistory })
       persist(get())
     },
 
@@ -93,6 +173,7 @@ export const useMindTrailStore = create<MindTrailState>((set, get) => {
       set((state) => ({
         projects: state.projects.filter((p) => p.id !== id),
         activeProjectId: state.activeProjectId === id ? null : state.activeProjectId,
+        ...clearedHistory,
       }))
       persist(get())
     },
@@ -111,6 +192,7 @@ export const useMindTrailStore = create<MindTrailState>((set, get) => {
     },
 
     updateNodeTitle: (nodeId, title) => {
+      pushHistory(`title:${nodeId}`)
       updateActive((p) => ({
         ...p,
         nodes: p.nodes.map((n) => (n.id === nodeId ? { ...n, title } : n)),
@@ -118,6 +200,7 @@ export const useMindTrailStore = create<MindTrailState>((set, get) => {
     },
 
     updateNodeNote: (nodeId, note) => {
+      pushHistory(`note:${nodeId}`)
       updateActive((p) => ({
         ...p,
         nodes: p.nodes.map((n) => (n.id === nodeId ? { ...n, note } : n)),
@@ -125,6 +208,7 @@ export const useMindTrailStore = create<MindTrailState>((set, get) => {
     },
 
     setNodeStatus: (nodeId, status) => {
+      pushHistory(null)
       updateActive((p) => ({
         ...p,
         nodes: p.nodes.map((n) => (n.id === nodeId ? { ...n, status } : n)),
@@ -132,6 +216,7 @@ export const useMindTrailStore = create<MindTrailState>((set, get) => {
     },
 
     moveNode: (nodeId, x, y) => {
+      pushHistory(null)
       updateActive((p) => ({
         ...p,
         nodes: p.nodes.map((n) => (n.id === nodeId ? { ...n, x, y } : n)),
@@ -143,6 +228,7 @@ export const useMindTrailStore = create<MindTrailState>((set, get) => {
       if (!project) return null
       const current = project.nodes.find((n) => n.id === project.currentNodeId)
       if (!current) return null
+      pushHistory(null)
       const node: TrailNode = {
         id: createId(),
         title: '新的学习节点',
@@ -168,6 +254,7 @@ export const useMindTrailStore = create<MindTrailState>((set, get) => {
       const branchCount = getChildren(project.edges, current.id).filter(
         (e) => e.type === 'branch',
       ).length
+      pushHistory(null)
       const node: TrailNode = {
         id: createId(),
         title: '新的学习节点',
@@ -186,6 +273,7 @@ export const useMindTrailStore = create<MindTrailState>((set, get) => {
     },
 
     deleteNode: (nodeId) => {
+      pushHistory(null)
       updateActive((p) => {
         const toRemove = new Set<string>([nodeId, ...getDescendants(p.edges, nodeId)])
         const parentId = getParentId(p.edges, nodeId)
@@ -207,7 +295,20 @@ export const useMindTrailStore = create<MindTrailState>((set, get) => {
     },
 
     autoLayout: () => {
+      pushHistory(null)
       updateActive((p) => ({ ...p, nodes: computeLayout(p.nodes, p.edges) }))
+    },
+
+    undo: () => {
+      const { past } = get()
+      if (past.length === 0) return
+      applySnapshot(past[past.length - 1], true)
+    },
+
+    redo: () => {
+      const { future } = get()
+      if (future.length === 0) return
+      applySnapshot(future[0], false)
     },
   }
 })

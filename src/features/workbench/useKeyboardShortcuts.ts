@@ -12,6 +12,22 @@ export function useKeyboardShortcuts() {
     const onKeyDown = (e: KeyboardEvent) => {
       if (isTypingTarget(e.target)) return
       const state = useMindTrailStore.getState()
+
+      // Undo / redo operate on history, not the selected node, so handle them
+      // first. While typing in a field the isTypingTarget guard above already
+      // let the browser's native text undo win.
+      if (e.ctrlKey || e.metaKey) {
+        const key = e.key.toLowerCase()
+        if (key === 'z' && !e.shiftKey) {
+          e.preventDefault()
+          state.undo()
+        } else if ((key === 'z' && e.shiftKey) || key === 'y') {
+          e.preventDefault()
+          state.redo()
+        }
+        return
+      }
+
       const current = selectCurrentNode(state)
       if (!current) return
 
