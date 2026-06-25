@@ -1,0 +1,13 @@
+# dependencies
+node_modules
+
+# build output
+dist
+*.tsbuildinfo
+
+# local / editor
+*.local
+.claude/settings.local.json
+
+# brainstorm scratch (tool-generated)
+.superpowers/
