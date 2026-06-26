@@ -109,7 +109,14 @@ export function TrailNodeView({ id, data }: NodeProps<TrailFlowNode>) {
               onChange={(e) => updateNodeTitle(id, e.target.value)}
               onBlur={() => setEditing(false)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === 'Escape') {
+                // Don't treat Enter/Escape as commit/cancel while an IME is
+                // composing — during Chinese (etc.) input, Enter confirms the
+                // candidate. Hijacking it here (preventDefault + closing the
+                // editor) destroys the composition mid-input.
+                if (
+                  !e.nativeEvent.isComposing &&
+                  (e.key === 'Enter' || e.key === 'Escape')
+                ) {
                   e.preventDefault()
                   setEditing(false)
                 }
