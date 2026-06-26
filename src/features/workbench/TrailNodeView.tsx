@@ -39,7 +39,18 @@ const statusLabel: Record<NodeStatus, string> = {
 export function TrailNodeView({ id, data }: NodeProps<TrailFlowNode>) {
   const updateNodeTitle = useMindTrailStore((s) => s.updateNodeTitle)
   const [editing, setEditing] = useState(false)
+  // The inline editor is driven by local draft state, not the store. The node's
+  // `data.title` is synced from the store through a Canvas effect, so it lags one
+  // render behind each keystroke; writing that stale value back into a controlled
+  // input mid-IME-composition corrupts the input (e.g. "shide" → duplicated
+  // pinyin). Local state stays in lockstep with what's typed; commit on blur.
+  const [draft, setDraft] = useState('')
   const cfg = statusConfig[data.status]
+
+  const commitTitle = () => {
+    updateNodeTitle(id, draft)
+    setEditing(false)
+  }
 
   const nodeStyle: React.CSSProperties = data.isCurrent
     ? {
@@ -76,6 +87,7 @@ export function TrailNodeView({ id, data }: NodeProps<TrailFlowNode>) {
       style={nodeStyle}
       onDoubleClick={(e) => {
         e.stopPropagation()
+        setDraft(data.title)
         setEditing(true)
       }}
     >
@@ -105,20 +117,19 @@ export function TrailNodeView({ id, data }: NodeProps<TrailFlowNode>) {
                 borderColor: '#5f7d63',
                 backgroundColor: '#fffdf9',
               }}
-              value={data.title}
-              onChange={(e) => updateNodeTitle(id, e.target.value)}
-              onBlur={() => setEditing(false)}
+              value={draft}
+              onChange={(e) => setDraft(e.target.value)}
+              onBlur={commitTitle}
               onKeyDown={(e) => {
-                // Don't treat Enter/Escape as commit/cancel while an IME is
-                // composing — during Chinese (etc.) input, Enter confirms the
-                // candidate. Hijacking it here (preventDefault + closing the
-                // editor) destroys the composition mid-input.
+                // Enter/Escape only commit/close when an IME is NOT composing —
+                // during Chinese (etc.) input, Enter confirms the candidate, so
+                // hijacking it would break composition.
                 if (
                   !e.nativeEvent.isComposing &&
                   (e.key === 'Enter' || e.key === 'Escape')
                 ) {
                   e.preventDefault()
-                  setEditing(false)
+                  commitTitle()
                 }
                 e.stopPropagation()
               }}

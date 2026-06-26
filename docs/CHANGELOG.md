@@ -38,7 +38,7 @@
 - 自动整理布局：中段主线节点的支线现在与其父节点同高（此前会错误地停留在根节点那一行）。
 - Backspace 删除走 store 真正删除节点（禁用 React Flow 内置删除，避免节点「复活」）。
 - 点击节点偶尔需要点第二次才聚焦：鼠标按下时约 1px 的轻微抖动会落入 React Flow 的死区（点击被抑制、又不足以触发拖拽），导致当前节点不更新。现已将 `nodeClickDistance` 与 `nodeDragThreshold` 对齐（4px），轻微抖动仍算点击、节点不会被误移。
-- 双击节点行内编辑标题时中文（输入法）输入异常：组合输入中按 Enter 选词会被 `onKeyDown` 当成"提交并关闭"，`preventDefault` + 关闭编辑框打断了组合输入。现已在 `e.nativeEvent.isComposing` 为真时让位给输入法，Enter/Escape 只在非组合状态才提交/取消。
+- 双击节点行内编辑标题时中文（输入法）输入异常，分两个原因修复：① 输入法组合中按 Enter 选词被 `onKeyDown` 当成"提交并关闭"——现已在 `e.nativeEvent.isComposing` 为真时让位给输入法；② 输入"shide"会变成"sshshishi'dshi'de"一长串：节点标题经 Canvas effect 同步进 React Flow，比按键滞后一拍，把这个旧值写回受控输入框会在组合输入中累积重复字符——现改为用本地 `draft` state 驱动输入框、失焦/回车时再提交到 store，输入框与所输内容始终同步。
 
 ### Not Included
 
