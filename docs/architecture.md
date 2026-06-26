@@ -1,6 +1,6 @@
 # Mind Trail 架构概览
 
-最后更新：2026-06-25 · 对应版本：v0.1.0
+最后更新：2026-06-26 · 对应版本：v0.1.0
 
 本文从三个角度讲清楚 Mind Trail 是怎么搭起来的：**系统骨架**（整体形态与分层）、**模块怎么分**（每个目录负责什么）、**数据怎么流**（一次操作从点击到落盘再到重绘）。面向想读懂或改动这套代码的人。给 AI / 日常开发的速查见 [`CLAUDE.md`](../CLAUDE.md)，产品行为以 [`PRODUCT_SPEC.md`](PRODUCT_SPEC.md) 为准。
 
@@ -60,7 +60,7 @@ src/
       Workbench.tsx         用 <ReactFlowProvider> 包住工作台，装配 Toolbar/Canvas/Inspector
       Toolbar.tsx           顶部栏：返回列表、项目标题、自动整理布局、回到当前节点
       Canvas.tsx            React Flow 画布；store ↔ RF 双向同步的关键所在
-      TrailNodeView.tsx     自定义节点：四个连接点 handle、状态配色、双击行内改标题
+      TrailNodeView.tsx     自定义节点：四个连接点 handle、状态色块 + 圆点、双击行内改标题
       Inspector.tsx         右侧面板：标题 / 状态 / 笔记 / 继续主线 / 创建支线 / 删除
       useKeyboardShortcuts.ts  全局快捷键：Enter/Tab/Delete/Backspace、Ctrl+Z/Ctrl+Y
   types.ts                  共享类型：TrailNode / TrailEdge / MindTrailProject / MindTrailStorage

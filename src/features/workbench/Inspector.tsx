@@ -19,28 +19,41 @@ export function Inspector() {
   if (!node) return null
 
   return (
-    <aside className="flex w-[320px] flex-col gap-4 border-l border-slate-200 bg-white p-5">
+    <aside
+      className="flex w-[320px] flex-col gap-4 p-5"
+      style={{ backgroundColor: '#f7f4ec', borderLeft: '1px solid #ece6da' }}
+    >
       <div>
-        <label className="mb-1 block text-xs font-medium text-slate-500">节点标题</label>
+        <label className="mb-1 block text-xs font-medium" style={{ color: '#5a6856' }}>
+          节点标题
+        </label>
         <input
-          className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
+          className="w-full px-3 py-2 text-sm focus:outline-none"
+          style={{
+            backgroundColor: '#fffdf9',
+            border: '1px solid #e6e0d4',
+            borderRadius: 10,
+            color: '#33352f',
+          }}
           value={node.title}
           onChange={(e) => updateNodeTitle(node.id, e.target.value)}
         />
       </div>
 
       <div>
-        <label className="mb-1 block text-xs font-medium text-slate-500">状态</label>
-        <div className="flex gap-2">
+        <label className="mb-1 block text-xs font-medium" style={{ color: '#5a6856' }}>
+          状态
+        </label>
+        <div className="flex gap-2 p-2" style={{ backgroundColor: '#e2ebe0', borderRadius: 10 }}>
           {statusOptions.map((opt) => (
             <button
               key={opt.value}
-              className={[
-                'flex-1 rounded-lg border px-2 py-1.5 text-xs',
+              className="flex-1 px-2 py-1.5 text-xs font-medium transition"
+              style={
                 node.status === opt.value
-                  ? 'border-blue-500 bg-blue-50 text-blue-700'
-                  : 'border-slate-200 text-slate-500 hover:bg-slate-50',
-              ].join(' ')}
+                  ? { backgroundColor: '#5f7d63', color: '#fff', borderRadius: 8 }
+                  : { color: '#5a6856', borderRadius: 8 }
+              }
               onClick={() => setNodeStatus(node.id, opt.value)}
             >
               {opt.label}
@@ -50,9 +63,20 @@ export function Inspector() {
       </div>
 
       <div className="flex-1">
-        <label className="mb-1 block text-xs font-medium text-slate-500">笔记</label>
+        <label className="mb-1 block text-xs font-medium" style={{ color: '#5a6856' }}>
+          笔记
+        </label>
         <textarea
-          className="h-32 w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm focus:border-blue-400 focus:outline-none"
+          className="w-full resize-none px-3 py-2 focus:outline-none"
+          style={{
+            height: 240,
+            backgroundColor: '#eef1e8',
+            border: 'none',
+            borderRadius: 10,
+            color: '#33352f',
+            fontSize: 13,
+            lineHeight: 1.75,
+          }}
           value={node.note}
           placeholder="简短记录这个学习点…"
           onChange={(e) => updateNodeNote(node.id, e.target.value)}
@@ -61,22 +85,25 @@ export function Inspector() {
 
       <div className="flex flex-col gap-2">
         <button
-          className="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="px-3 py-2 text-sm font-medium transition hover:opacity-90"
+          style={{ backgroundColor: '#5f7d63', color: '#fff', borderRadius: 10 }}
           onClick={() => continueMainLine()}
         >
-          继续主线 (Enter)
+          继续主线 Enter
         </button>
         <button
-          className="rounded-lg border border-blue-200 bg-blue-50 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-100"
+          className="px-3 py-2 text-sm font-medium transition hover:opacity-90"
+          style={{ backgroundColor: '#a8c4a0', color: '#2d4633', borderRadius: 10 }}
           onClick={() => createBranch()}
         >
-          创建支线 (Tab)
+          创建支线 Tab
         </button>
         <button
-          className="rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+          className="px-3 py-2 text-sm font-medium transition hover:opacity-90"
+          style={{ backgroundColor: '#d8cfc6', color: '#7a5e53', borderRadius: 10 }}
           onClick={() => deleteNode(node.id)}
         >
-          删除节点 (Delete)
+          删除节点 Delete
         </button>
       </div>
     </aside>

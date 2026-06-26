@@ -21,30 +21,54 @@ export function Toolbar() {
   }
 
   return (
-    <div className="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-2">
+    <div
+      className="flex items-center gap-3 px-4 py-2"
+      style={{ backgroundColor: '#fffdf8', borderBottom: '1px solid #ece6da' }}
+    >
       <button
-        className="rounded-lg px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100"
+        className="px-3 py-1.5 text-sm transition hover:opacity-70"
+        style={{ color: '#5a6856', borderRadius: 10 }}
         onClick={() => closeProject()}
       >
         ← 项目列表
       </button>
-      <input
-        className="min-w-0 flex-1 rounded-lg px-2 py-1.5 text-sm font-medium text-slate-800 hover:bg-slate-50 focus:bg-slate-50 focus:outline-none"
-        value={project.title}
-        onChange={(e) => renameProject(project.id, e.target.value)}
-      />
-      <button
-        className="rounded-lg px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100"
-        onClick={() => autoLayout()}
+      {/* Auto-sizing title: a hidden span mirrors the value and defines the grid
+          cell width, so the input shrink-wraps the text instead of stretching. */}
+      <div
+        className="grid items-center"
+        style={{ border: '1px solid #ece6da', borderRadius: 10, maxWidth: 420 }}
       >
-        自动整理布局
-      </button>
-      <button
-        className="rounded-lg px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-100"
-        onClick={focusCurrent}
-      >
-        回到当前节点
-      </button>
+        <span
+          aria-hidden
+          className="invisible whitespace-pre px-2 py-1.5 text-sm font-medium"
+          style={{ gridArea: '1 / 1', minWidth: '3rem' }}
+        >
+          {project.title || ' '}
+        </span>
+        <input
+          size={1}
+          className="bg-transparent px-2 py-1.5 text-sm font-medium focus:outline-none"
+          style={{ gridArea: '1 / 1', width: '100%', minWidth: 0, color: '#5f7d63' }}
+          value={project.title}
+          onChange={(e) => renameProject(project.id, e.target.value)}
+        />
+      </div>
+      <div className="ml-auto flex items-center gap-3">
+        <button
+          className="px-3 py-1.5 text-sm transition hover:opacity-70"
+          style={{ color: '#5a6856', borderRadius: 10 }}
+          onClick={() => autoLayout()}
+        >
+          自动整理布局
+        </button>
+        <button
+          className="px-3 py-1.5 text-sm transition hover:opacity-70"
+          style={{ color: '#5a6856', borderRadius: 10 }}
+          onClick={focusCurrent}
+        >
+          回到当前节点
+        </button>
+      </div>
     </div>
   )
 }

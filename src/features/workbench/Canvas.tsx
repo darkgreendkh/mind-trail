@@ -92,15 +92,16 @@ export function Canvas() {
     () =>
       (project?.edges ?? []).map((e) => {
         const isMain = e.type === 'main'
-        const color = isMain ? '#334155' : '#94a3b8'
+        const color = isMain ? '#5f7d63' : '#c8bda9'
+        const arrowColor = isMain ? '#5f7d63' : '#bcb4a4'
         return {
           id: e.id,
           source: e.from,
           target: e.to,
           sourceHandle: isMain ? 'bottom' : 'right',
           targetHandle: isMain ? 'top' : 'left',
-          style: { strokeWidth: isMain ? 2.5 : 1.5, stroke: color },
-          markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18, color },
+          style: { strokeWidth: isMain ? 3.5 : 2, stroke: color, strokeLinecap: 'round' as const },
+          markerEnd: { type: MarkerType.ArrowClosed, width: 18, height: 18, color: arrowColor },
         }
       }),
     [project?.edges],
@@ -134,12 +135,13 @@ export function Canvas() {
       nodeDragThreshold={NODE_CLICK_SLOP}
       deleteKeyCode={null}
       colorMode="light"
+      style={{ backgroundColor: '#f0ede4' }}
       fitView
       minZoom={0.2}
       maxZoom={2}
       proOptions={{ hideAttribution: true }}
     >
-      <Background gap={20} />
+      <Background gap={22} size={1.2} color="#d5cfc0" />
       <Controls showInteractive={false} />
     </ReactFlow>
   )

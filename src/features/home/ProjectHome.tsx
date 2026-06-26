@@ -16,11 +16,16 @@ export function ProjectHome() {
     <div className="mx-auto max-w-3xl px-6 py-12">
       <header className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-slate-800">Mind Trail</h1>
-          <p className="mt-1 text-sm text-slate-500">本地学习路径可视化</p>
+          <h1 className="text-2xl font-bold" style={{ color: '#33352f' }}>
+            Mind Trail
+          </h1>
+          <p className="mt-1 text-sm" style={{ color: '#a59c8e' }}>
+            本地学习路径可视化
+          </p>
         </div>
         <button
-          className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700"
+          className="px-4 py-2 text-sm font-medium text-white transition hover:opacity-90"
+          style={{ backgroundColor: '#5f7d63', borderRadius: 10 }}
           onClick={() => createProject()}
         >
           新建项目
@@ -28,7 +33,10 @@ export function ProjectHome() {
       </header>
 
       {sorted.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 p-12 text-center text-slate-500">
+        <div
+          className="rounded-xl border border-dashed p-12 text-center"
+          style={{ borderColor: '#d5cfc0', color: '#a59c8e' }}
+        >
           还没有学习图。点击「新建项目」开始你的第一条学习路径。
         </div>
       ) : (
@@ -36,17 +44,25 @@ export function ProjectHome() {
           {sorted.map((p) => (
             <li
               key={p.id}
-              className="group flex items-center justify-between rounded-xl border border-slate-200 bg-white px-5 py-4 hover:border-blue-300 hover:shadow-sm"
+              className="group flex items-center justify-between px-5 py-4 transition hover:shadow-sm"
+              style={{
+                backgroundColor: '#fffdf8',
+                border: '1px solid #ece6da',
+                borderRadius: 12,
+              }}
             >
               <button className="flex-1 text-left" onClick={() => openProject(p.id)}>
-                <div className="font-medium text-slate-800">{p.title}</div>
-                <div className="mt-1 text-xs text-slate-400">
+                <div className="font-medium" style={{ color: '#33352f' }}>
+                  {p.title}
+                </div>
+                <div className="mt-1 text-xs" style={{ color: '#a59c8e' }}>
                   {p.nodes.length} 个节点 · 更新于{' '}
                   {new Date(p.updatedAt).toLocaleString('zh-CN')}
                 </div>
               </button>
               <button
-                className="ml-4 rounded-lg px-3 py-1.5 text-sm text-slate-400 opacity-0 transition group-hover:opacity-100 hover:bg-red-50 hover:text-red-600"
+                className="ml-4 px-3 py-1.5 text-sm opacity-0 transition group-hover:opacity-100 hover:opacity-70"
+                style={{ color: '#7a5e53', borderRadius: 10 }}
                 onClick={() => setPendingDelete(p.id)}
               >
                 删除

@@ -7,5 +7,37 @@
 html, body, #root {
   height: 100%;
   margin: 0;
-  background-color: #f8fafc;
+  background-color: #f0ede4;
+  font-family: 'LXGW WenKai Screen', system-ui, sans-serif;
+}
+
+.react-flow__handle {
+  opacity: 0 !important;
+  width: 6px !important;
+  height: 6px !important;
+}
+
+.react-flow__node.selected {
+  outline: none !important;
+}
+
+.react-flow__controls {
+  box-shadow: 0 2px 8px rgba(74,97,74,.08) !important;
+  border: 1px solid #ece6da !important;
+  border-radius: 10px !important;
+  overflow: hidden;
+}
+
+.react-flow__controls button {
+  background: #fffdf8 !important;
+  border-color: #ece6da !important;
+  color: #5a6856 !important;
+}
+
+.react-flow__controls button:hover {
+  background: #f7f4ec !important;
+}
+
+.react-flow__controls button svg {
+  fill: #5a6856 !important;
 }
