@@ -8,6 +8,8 @@ dist
 # local / editor
 *.local
 .claude/settings.local.json
+.claude/settings.json
+CLAUDE.local.md
 
 # brainstorm scratch (tool-generated)
 .superpowers/
